@@ -1,0 +1,35 @@
+set daemon  60
+set logfile syslog facility log_daemon
+set idfile /var/monit/id
+set statefile /var/monit/state
+set mailserver localhost
+set alert asahi551182@gmail.com only on { timeout }     # receive all alerts
+set httpd port 2812 and
+
+include /etc/monit.d/*
+
+#    use address localhost  # only accept connection from localhost
+    allow localhost
+    allow 106.188.109.67   #allow localhost to connect to the server and
+    allow admin:monit      # require user 'admin' with password 'monit'
+    allow @monit           # allow users of group 'monit' to connect (rw)
+    allow @users readonly  # allow users of group 'users' to connect readonly
+
+
+check process httpd with pidfile /var/run/httpd.pid
+start program = "/etc/init.d/httpd start" with timeout 60 seconds
+stop program  = "/etc/init.d/httpd stop"
+if failed host ( <%= node[:ipaddress] %>) port 80 send "GET / HTTP/1.1\r\nHost: (<%= node[:ipaddress] %>)\r\n\r\n" expect "HTTP/1\.[01x] [1-4][0-9]{2} .*\r\n" with timeout 60 seconds then restart
+if 1000 restarts within 1000 cycles then timeout
+if failed port 80 then restart
+if cpu > 60% for 2 cycles then alert
+if cpu > 80% for 1 cycles then restart
+if mem > 1000.0 MB  for 1 cycles then restart
+if mem > 500.0 MB for 2 cycles then restart
+
+
+check process mysqld with pidfile "/var/run/mysqld/mysqld.pid"
+start = "/etc/init.d/mysqld start"
+stop = "/etc/init.d/mysqld stop"
+if failed unixsocket /var/lib/mysql/mysql.sock with timeout 60 seconds then restart
+if 5 restarts within 5 cycles then timeout
