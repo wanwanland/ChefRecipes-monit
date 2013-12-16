@@ -2,9 +2,9 @@
 # Cookbook Name:: monit
 # Recipe:: default
 #
-# Copyright 2013, YOUR_COMPANY_NAME
+# Copyright 2013, iguasn
 #
-# All rights reserved - Do Not Redistribute
+# All rights reserved
 #
 
 filename = "rpmforge-release-0.5.1-1.el5.rf.i386.rpm"
